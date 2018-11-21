@@ -31,16 +31,13 @@ class MyModule extends Module
   {
     if (Shop::isFeatureActive())
       Shop::setContext(Shop::CONTEXT_ALL);
-
-    if (!parent::install() ||
-      !$this->registerHook('leftColumn') ||
-      !$this->registerHook('header') ||
-      !Configuration::updateValue('MYMODULE_NAME', 'my friend')
-    )
-      return false;
-
-    return true;
+   
+    return parent::install() &&
+      $this->registerHook('leftColumn') &&
+      $this->registerHook('header') &&
+      Configuration::updateValue('MYMODULE_NAME', 'my friend');
   }
+
 
   public function uninstall()
   {
@@ -53,6 +50,26 @@ class MyModule extends Module
   }
 
 
+  public function hookDisplayLeftColumn($params)
+  {
+    $this->context->smarty->assign(
+        array(
+            'my_module_name' => Configuration::get('MYMODULE_NAME'),
+            'my_module_link' => $this->context->link->getModuleLink('mymodule', 'display')
+        )
+    );
+    return $this->display(__FILE__, 'mymodule.tpl');
+  }
+   
+  public function hookDisplayRightColumn($params)
+  {
+    return $this->hookDisplayLeftColumn($params);
+  }
+   
+  public function hookDisplayHeader()
+  {
+    $this->context->controller->addCSS($this->_path.'css/mymodule.css', 'all');
+  }
 
 
 public function getContent()
